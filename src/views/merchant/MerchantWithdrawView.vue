@@ -1,0 +1,260 @@
+<template>
+  <PageContainer title="提现管理" desc="查看提现记录和申请提现">
+    <template #actions>
+      <el-button type="primary" @click="openWithdrawDialog">
+        <el-icon><Wallet /></el-icon>申请提现
+      </el-button>
+    </template>
+
+    <!-- Balance Summary -->
+    <div class="balance-bar">
+      <div class="balance-item">
+        <span class="balance-label">可提现余额</span>
+        <span class="balance-value">¥{{ formatMoney(availableBalance) }}</span>
+      </div>
+      <div class="balance-divider"></div>
+      <div class="balance-item">
+        <span class="balance-label">冻结金额</span>
+        <span class="balance-value">¥{{ formatMoney(freezeBalance) }}</span>
+      </div>
+      <div class="balance-divider"></div>
+      <div class="balance-item">
+        <span class="balance-label">账户余额</span>
+        <span class="balance-value">¥{{ formatMoney(totalBalance) }}</span>
+      </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="table-card">
+      <el-table :data="tableData" v-loading="loading" stripe>
+        <el-table-column prop="id" label="提现单号" width="100">
+          <template #default="{ row }">
+            <span class="font-mono" style="font-size:12px">{{ row.id }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="amount" label="提现金额" width="120">
+          <template #default="{ row }">
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace">¥{{ formatMoney(row.amount) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)" size="small" round>
+              {{ getStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" min-width="120">
+          <template #default="{ row }">
+            <span style="color:var(--ep-text-secondary)">{{ row.remark || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="申请时间" width="170">
+          <template #default="{ row }">
+            <span style="font-size:13px;color:var(--ep-text-secondary)">{{ formatDate(row.createTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="处理时间" width="170">
+          <template #default="{ row }">
+            <span style="font-size:13px;color:var(--ep-text-secondary)">{{ formatDate(row.updateTime) || '-' }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="query.page"
+          v-model:page-size="query.size"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @change="loadData"
+        />
+      </div>
+    </div>
+
+    <!-- Withdraw Dialog -->
+    <el-dialog v-model="dialogVisible" title="申请提现" width="400px">
+      <el-form ref="formRef" :model="withdrawForm" :rules="rules" label-width="80px">
+        <el-form-item label="提现金额" prop="amount">
+          <el-input-number
+            v-model="withdrawForm.amount"
+            :precision="2"
+            :min="0.01"
+            :max="availableBalance"
+            controls-position="right"
+            style="width:100%"
+            placeholder="请输入提现金额"
+          />
+        </el-form-item>
+        <div class="withdraw-tip">
+          <el-alert type="info" :closable="false" show-icon>
+            <template #title>
+              当前可提现余额：¥{{ formatMoney(availableBalance) }}
+            </template>
+          </el-alert>
+        </div>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit">确定提现</el-button>
+      </template>
+    </el-dialog>
+  </PageContainer>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { getWithdrawRecords, submitWithdraw, getMerchantAccountInfo } from '../../api/auth'
+import { formatMoney, formatDate } from '../../utils/format'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import PageContainer from '../../components/PageContainer.vue'
+
+const loading = ref(false)
+const tableData = ref([])
+const total = ref(0)
+const dialogVisible = ref(false)
+const submitting = ref(false)
+const formRef = ref()
+
+const availableBalance = ref(0)
+const freezeBalance = ref(0)
+const totalBalance = ref(0)
+
+const query = reactive({ page: 1, size: 20 })
+const withdrawForm = reactive({ amount: null })
+const rules = {
+  amount: [
+    { required: true, message: '请输入提现金额', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value === null || value === undefined || value <= 0) {
+          callback(new Error('提现金额必须大于0'))
+        } else if (value > availableBalance.value) {
+          callback(new Error('超过可提现余额'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+}
+
+const statusMap = {
+  0: { label: '处理中', type: 'warning' },
+  1: { label: '已通过', type: 'success' },
+  2: { label: '已拒绝', type: 'danger' },
+}
+
+onMounted(() => {
+  loadAccount()
+  loadData()
+})
+
+async function loadAccount() {
+  try {
+    const res = await getMerchantAccountInfo()
+    const data = res.data
+    availableBalance.value = data.availableBalance || 0
+    freezeBalance.value = data.frozenBalance || 0
+    totalBalance.value = availableBalance.value + freezeBalance.value
+  } catch { /* ignore */ }
+}
+
+async function loadData() {
+  loading.value = true
+  try {
+    const res = await getWithdrawRecords(query)
+    tableData.value = res.data.records || []
+    total.value = res.data.total || 0
+  } finally {
+    loading.value = false
+  }
+}
+
+function getStatusType(status) {
+  return statusMap[status]?.type || 'info'
+}
+
+function getStatusLabel(status) {
+  return statusMap[status]?.label || '未知'
+}
+
+function openWithdrawDialog() {
+  withdrawForm.amount = null
+  dialogVisible.value = true
+}
+
+async function handleSubmit() {
+  await formRef.value.validate()
+  submitting.value = true
+  try {
+    await submitWithdraw({ amount: String(withdrawForm.amount) })
+    ElMessage.success('提现申请已提交')
+    dialogVisible.value = false
+    loadData()
+    loadAccount()
+  } catch { /* ignore */ } finally {
+    submitting.value = false
+  }
+}
+</script>
+
+<style scoped>
+.balance-bar {
+  background: var(--ep-bg-card);
+  border: 1px solid var(--ep-border-light);
+  border-radius: var(--ep-radius);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 24px;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balance-label {
+  font-size: 12px;
+  color: var(--ep-text-secondary);
+}
+
+.balance-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ep-text-primary);
+}
+
+.balance-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--ep-border-light);
+}
+
+.table-card {
+  background: var(--ep-bg-card);
+  border: 1px solid var(--ep-border-light);
+  border-radius: var(--ep-radius);
+  padding: 16px 20px;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
+
+.withdraw-tip {
+  margin-top: 8px;
+}
+</style>
