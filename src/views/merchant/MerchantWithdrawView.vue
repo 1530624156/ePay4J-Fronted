@@ -1,9 +1,11 @@
 <template>
   <PageContainer title="提现管理" desc="查看提现记录和申请提现">
     <template #actions>
-      <el-button type="primary" @click="openWithdrawDialog">
-        <el-icon><Wallet /></el-icon>申请提现
-      </el-button>
+      <el-tooltip :disabled="!hasPending" content="有处理中的提现任务，请等待完成后再申请" placement="bottom">
+        <el-button type="primary" :disabled="hasPending" @click="openWithdrawDialog">
+          <el-icon><Wallet /></el-icon>申请提现
+        </el-button>
+      </el-tooltip>
     </template>
 
     <!-- Balance Summary -->
@@ -35,6 +37,20 @@
         <el-table-column prop="amount" label="提现金额" width="120">
           <template #default="{ row }">
             <span style="font-weight:700;font-family:'JetBrains Mono',monospace">¥{{ formatMoney(row.amount) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="serviceFee" label="手续费" width="110">
+          <template #default="{ row }">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--ep-text-secondary)">
+              {{ row.serviceFee != null ? '¥' + formatMoney(row.serviceFee) : '-' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="amountCredited" label="实际到账" width="120">
+          <template #default="{ row }">
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;color:#059669">
+              {{ row.amountCredited != null ? '¥' + formatMoney(row.amountCredited) : '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -81,14 +97,19 @@
             v-model="withdrawForm.amount"
             :precision="2"
             :min="0.01"
-            :max="availableBalance"
+            :max="availableBalance || undefined"
             controls-position="right"
             style="width:100%"
             placeholder="请输入提现金额"
           />
         </el-form-item>
         <div class="withdraw-tip">
-          <el-alert type="info" :closable="false" show-icon>
+          <el-alert v-if="availableBalance <= 0" type="warning" :closable="false" show-icon>
+            <template #title>
+              当前无可提现余额，请等待处理中的提现完成
+            </template>
+          </el-alert>
+          <el-alert v-else type="info" :closable="false" show-icon>
             <template #title>
               当前可提现余额：¥{{ formatMoney(availableBalance) }}
             </template>
@@ -104,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getWithdrawRecords, submitWithdraw, getMerchantAccountInfo } from '../../api/auth'
 import { formatMoney, formatDate } from '../../utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -123,6 +144,7 @@ const totalBalance = ref(0)
 
 const query = reactive({ page: 1, size: 20 })
 const withdrawForm = reactive({ amount: null })
+const hasPending = computed(() => tableData.value.some(r => r.status === 0))
 const rules = {
   amount: [
     { required: true, message: '请输入提现金额', trigger: 'blur' },
@@ -187,7 +209,11 @@ function openWithdrawDialog() {
 }
 
 async function handleSubmit() {
-  await formRef.value.validate()
+  try {
+    await formRef.value.validate()
+  } catch {
+    return
+  }
   submitting.value = true
   try {
     await submitWithdraw({ amount: String(withdrawForm.amount) })
@@ -195,7 +221,9 @@ async function handleSubmit() {
     dialogVisible.value = false
     loadData()
     loadAccount()
-  } catch { /* ignore */ } finally {
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '提现申请失败')
+  } finally {
     submitting.value = false
   }
 }

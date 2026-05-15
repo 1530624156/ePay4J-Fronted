@@ -52,6 +52,20 @@
             <span style="font-weight:700;font-family:'JetBrains Mono',monospace">¥{{ formatMoney(row.amount) }}</span>
           </template>
         </el-table-column>
+        <el-table-column prop="serviceFee" label="手续费" width="110">
+          <template #default="{ row }">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--ep-text-secondary)">
+              {{ row.serviceFee != null ? '¥' + formatMoney(row.serviceFee) : '-' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="amountCredited" label="实际到账" width="120">
+          <template #default="{ row }">
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;color:#059669">
+              {{ row.amountCredited != null ? '¥' + formatMoney(row.amountCredited) : '-' }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small" round>
@@ -114,6 +128,18 @@
               <span class="info-label">提现金额</span>
               <span class="info-value" style="font-weight:700;font-family:'JetBrains Mono',monospace">
                 ¥{{ formatMoney(currentRecord.amount) }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">手续费</span>
+              <span class="info-value font-mono">
+                {{ currentRecord.serviceFee != null ? '¥' + formatMoney(currentRecord.serviceFee) : '-' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">实际到账</span>
+              <span class="info-value font-mono" style="font-weight:700;color:#059669">
+                {{ currentRecord.amountCredited != null ? '¥' + formatMoney(currentRecord.amountCredited) : '-' }}
               </span>
             </div>
             <div class="info-item">
