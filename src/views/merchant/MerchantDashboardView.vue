@@ -81,7 +81,7 @@
         <el-divider />
         <div class="cred-row">
           <span class="cred-label">商户编号 (PID)</span>
-          <span class="cred-value font-mono">{{ credentials.pid }}</span>
+          <span class="cred-value font-mono">{{ userStore.merchantId || credentials.pid || '-' }}</span>
         </div>
         <div class="cred-row">
           <span class="cred-label">密钥 (Key)</span>

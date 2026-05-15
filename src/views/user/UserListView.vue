@@ -6,12 +6,21 @@
       </el-button>
     </template>
 
-    <!-- Table -->
-    <div class="table-card">
-      <el-table :data="tableData" v-loading="loading" stripe>
+    <!-- Admin Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title-row">
+          <div class="section-icon admin-icon">
+            <el-icon :size="18"><Setting /></el-icon>
+          </div>
+          <span class="section-title">管理员</span>
+          <el-tag type="danger" size="small" round class="count-tag">{{ adminList.length }}</el-tag>
+        </div>
+      </div>
+      <el-table :data="adminList" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="60">
           <template #default="{ row }">
-            <span style="font-family:'JetBrains Mono',monospace;color:var(--ep-text-secondary)">{{ row.id }}</span>
+            <span class="id-text">{{ row.id }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="username" label="用户名" width="140">
@@ -30,7 +39,7 @@
         <el-table-column prop="role" label="角色" width="140">
           <template #default="{ row }">
             <el-tag
-              :type="row.role === 'SUPER_ADMIN' ? 'danger' : 'success'"
+              :type="row.role === 'SUPER_ADMIN' ? 'danger' : 'warning'"
               size="small"
               round
             >
@@ -43,7 +52,7 @@
             <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="toggleStatus(row)" />
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginTime" label="最后登录" width="170">
+        <el-table-column prop="lastLoginTime" label="最后登录" min-width="170">
           <template #default="{ row }">
             <span style="font-size:13px;color:var(--ep-text-secondary)">{{ formatDate(row.lastLoginTime) }}</span>
           </template>
@@ -53,6 +62,56 @@
             <el-button type="primary" link size="small" @click="openDialog(row)">编辑</el-button>
             <el-button type="warning" link size="small" @click="handleResetPwd(row)">重置密码</el-button>
             <el-button type="danger" link size="small" @click="handleDelete(row)" :disabled="row.role === 'SUPER_ADMIN'">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- Merchant Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title-row">
+          <div class="section-icon merchant-icon">
+            <el-icon :size="18"><Shop /></el-icon>
+          </div>
+          <span class="section-title">商户</span>
+          <el-tag type="success" size="small" round class="count-tag">{{ merchantList.length }}</el-tag>
+        </div>
+      </div>
+      <el-table :data="merchantList" v-loading="loading" stripe>
+        <el-table-column prop="id" label="ID" width="60">
+          <template #default="{ row }">
+            <span class="id-text">{{ row.id }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="username" label="用户名" width="140">
+          <template #default="{ row }">
+            <div style="display:flex;align-items:center;gap:10px">
+              <el-avatar :size="30" class="merchant-avatar">{{ row.username.charAt(0).toUpperCase() }}</el-avatar>
+              <span style="font-weight:500">{{ row.username }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="nickname" label="昵称" width="130">
+          <template #default="{ row }">
+            <span style="color:var(--ep-text-secondary)">{{ row.nickname || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="90" align="center">
+          <template #default="{ row }">
+            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="toggleStatus(row)" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastLoginTime" label="最后登录" min-width="170">
+          <template #default="{ row }">
+            <span style="font-size:13px;color:var(--ep-text-secondary)">{{ formatDate(row.lastLoginTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link size="small" @click="openDialog(row)">编辑</el-button>
+            <el-button type="warning" link size="small" @click="handleResetPwd(row)">重置密码</el-button>
+            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -79,6 +138,13 @@
                 <span style="color:#9ca3af;font-size:12px">拥有所有权限</span>
               </div>
             </el-option>
+            <el-option label="管理员" value="ADMIN">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:#f59e0b;font-size:16px">●</span>
+                <span>管理员</span>
+                <span style="color:#9ca3af;font-size:12px">后台管理权限</span>
+              </div>
+            </el-option>
             <el-option label="商户" value="MERCHANT">
               <div style="display:flex;align-items:center;gap:8px">
                 <span style="color:#10b981;font-size:16px">●</span>
@@ -98,19 +164,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getUserPage, createUser, updateUser, updateUserStatus, resetPassword, deleteUser } from '../../api/user'
 import { formatDate } from '../../utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '../../components/PageContainer.vue'
 
-const roleMap = { SUPER_ADMIN: '超级管理员', MERCHANT: '商户' }
+const roleMap = { SUPER_ADMIN: '超级管理员', ADMIN: '管理员', MERCHANT: '商户' }
 const loading = ref(false)
 const tableData = ref([])
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const editingId = ref(null)
 const formRef = ref()
+
+const adminList = computed(() => tableData.value.filter(u => u.role === 'SUPER_ADMIN' || u.role === 'ADMIN'))
+const merchantList = computed(() => tableData.value.filter(u => u.role === 'MERCHANT'))
 
 const form = reactive({ username: '', password: '', nickname: '', role: 'MERCHANT' })
 const rules = {
@@ -185,16 +254,70 @@ async function handleDelete(row) {
 </script>
 
 <style scoped>
-.table-card {
+.section-card {
   background: var(--ep-bg-card);
   border: 1px solid var(--ep-border-light);
   border-radius: var(--ep-radius);
   box-shadow: var(--ep-shadow-sm);
-  padding: 16px 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-icon.admin-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.section-icon.merchant-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ep-text-primary);
+}
+
+.count-tag {
+  margin-left: 2px;
+}
+
+.id-text {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ep-text-secondary);
 }
 
 .admin-avatar {
   background: linear-gradient(135deg, #6366f1, #818cf8) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  flex-shrink: 0;
+}
+
+.merchant-avatar {
+  background: linear-gradient(135deg, #10b981, #34d399) !important;
   color: white !important;
   font-weight: 600 !important;
   font-size: 12px !important;
