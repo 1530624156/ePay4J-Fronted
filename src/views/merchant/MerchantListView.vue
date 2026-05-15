@@ -208,7 +208,7 @@ async function handleDelete(row) {
 }
 
 function goToAccount(row) {
-  router.push({ path: `/merchants/${row.id}/account`, query: { merchantName: row.name } })
+  router.push({ name: 'MerchantAccount', params: { merchantId: row.id }, query: { merchantName: row.name } })
 }
 
 function copyKey(key) {
