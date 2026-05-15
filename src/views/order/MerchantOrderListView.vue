@@ -35,7 +35,7 @@
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="outTradeNo" label="订单号" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">
-            <span class="font-mono" style="font-size:12px;color:var(--ep-primary)">{{ row.outTradeNo }}</span>
+            <span class="font-mono" style="font-size:12px;color:rgba(201,169,110,0.6)">{{ row.outTradeNo }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="subject" label="商品名称" min-width="140" show-overflow-tooltip>
@@ -45,7 +45,7 @@
         </el-table-column>
         <el-table-column prop="totalAmount" label="金额" width="110">
           <template #default="{ row }">
-            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ep-text-primary)">¥{{ formatMoney(row.totalAmount) }}</span>
+            <span style="font-weight:700;font-family:'Space Mono',monospace;font-size:14px;color:rgba(240,236,228,0.75)">¥{{ formatMoney(row.totalAmount) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -61,22 +61,22 @@
               </span>
               <span v-else class="countdown expired">已过期</span>
             </template>
-            <span v-else style="color:#d1d5db;font-size:12px">-</span>
+            <span v-else style="color:rgba(240,236,228,0.3);font-size:12px">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="payType" label="支付方式" width="120">
           <template #default="{ row }">
-            <span style="font-size:13px;color:var(--ep-text-secondary)">{{ PAY_TYPE[row.payType] || row.payType }}</span>
+            <span style="font-size:13px;color:rgba(240,236,228,0.5)">{{ PAY_TYPE[row.payType] || row.payType }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="170">
           <template #default="{ row }">
-            <span style="font-size:13px;color:var(--ep-text-secondary)">{{ formatDate(row.createTime) }}</span>
+            <span style="font-size:13px;color:rgba(240,236,228,0.5)">{{ formatDate(row.createTime) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="viewDetail(row)">详情</el-button>
+            <el-button link size="small" class="detail-link" @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -89,7 +89,8 @@
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next, jumper"
-          @change="loadData"
+          @current-change="loadData"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
@@ -262,6 +263,11 @@ function resetQuery() {
   loadData()
 }
 
+function handleSizeChange() {
+  query.page = 1
+  loadData()
+}
+
 async function viewDetail(row) {
   try {
     const res = await getMerchantOrderDetail(row.id)
@@ -330,46 +336,231 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 
 <style scoped>
 .filter-card {
-  background: var(--ep-bg-card);
-  border: 1px solid var(--ep-border-light);
-  border-radius: var(--ep-radius);
-  box-shadow: var(--ep-shadow-sm);
+  background: #18181c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: 16px 20px;
 }
 
 .table-card {
-  background: var(--ep-bg-card);
-  border: 1px solid var(--ep-border-light);
-  border-radius: var(--ep-radius);
-  box-shadow: var(--ep-shadow-sm);
+  background: #18181c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: 16px 20px;
 }
 
+/* Dark table overrides */
+.table-card :deep(.el-table) {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(255, 255, 255, 0.03);
+  --el-table-header-text-color: rgba(240, 236, 228, 0.6);
+  --el-table-text-color: rgba(240, 236, 228, 0.75);
+  --el-table-border-color: rgba(255, 255, 255, 0.05);
+  --el-table-row-hover-bg-color: rgba(201, 169, 110, 0.04);
+  --el-table-current-row-bg-color: rgba(201, 169, 110, 0.04);
+}
+
+.table-card :deep(.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell) {
+  background: rgba(201, 169, 110, 0.025);
+}
+
+.table-card :deep(.el-table th.el-table__cell) {
+  background: transparent !important;
+  color: rgba(240, 236, 228, 0.35) !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom-color: rgba(201, 169, 110, 0.08) !important;
+}
+
+.table-card :deep(.el-table td.el-table__cell) {
+  border-bottom-color: rgba(201, 169, 110, 0.06) !important;
+}
+
+/* Dark form overrides */
+.filter-card :deep(.el-form-item__label) {
+  color: rgba(240, 236, 228, 0.45) !important;
+  font-size: 12px;
+}
+
+.filter-card :deep(.el-input__wrapper) {
+  background: #1f1f25 !important;
+  border: 1px solid rgba(120, 120, 130, 0.12) !important;
+  box-shadow: none !important;
+  border-radius: 8px;
+}
+
+.filter-card :deep(.el-input__wrapper:hover) {
+  border-color: rgba(201, 169, 110, 0.2) !important;
+}
+
+.filter-card :deep(.el-input__wrapper.is-focus) {
+  border-color: rgba(201, 169, 110, 0.3) !important;
+  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.06) !important;
+}
+
+.filter-card :deep(.el-input__inner) {
+  color: rgba(240, 236, 228, 0.75) !important;
+}
+
+.filter-card :deep(.el-input__inner::placeholder) {
+  color: rgba(240, 236, 228, 0.3) !important;
+}
+
+/* Select dropdown dark overrides — match input style */
+.filter-card :deep(.el-select .el-input__wrapper) {
+  background: #1f1f25 !important;
+  border: 1px solid rgba(120, 120, 130, 0.12) !important;
+  box-shadow: none !important;
+  border-radius: 8px;
+}
+
+.filter-card :deep(.el-select .el-input__wrapper:hover) {
+  border-color: rgba(201, 169, 110, 0.2) !important;
+}
+
+.filter-card :deep(.el-select .el-input__wrapper.is-focus) {
+  border-color: rgba(201, 169, 110, 0.3) !important;
+  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.06) !important;
+}
+
+.filter-card :deep(.el-select .el-input__inner) {
+  color: rgba(240, 236, 228, 0.75) !important;
+}
+
+.filter-card :deep(.el-select .el-input__inner::placeholder) {
+  color: rgba(240, 236, 228, 0.3) !important;
+}
+
+.filter-card :deep(.el-select .el-input__suffix) {
+  color: rgba(240, 236, 228, 0.4);
+}
+
+/* Date picker dark overrides */
+.filter-card :deep(.el-range-input) {
+  color: rgba(240, 236, 228, 0.75) !important;
+  background: transparent !important;
+}
+
+.filter-card :deep(.el-range-input::placeholder) {
+  color: rgba(240, 236, 228, 0.3) !important;
+}
+
+.filter-card :deep(.el-range-separator) {
+  color: rgba(240, 236, 228, 0.3) !important;
+}
+
+.filter-card :deep(.el-range__icon) {
+  color: rgba(240, 236, 228, 0.4);
+}
+
+.filter-card :deep(.el-date-editor) {
+  --el-date-editor-width: 260px;
+}
+
+/* Primary button — gold */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #c9a96e;
+  --el-button-border-color: #c9a96e;
+  --el-button-text-color: rgba(240, 236, 228, 0.9);
+  --el-button-hover-bg-color: #d4b87a;
+  --el-button-hover-border-color: #d4b87a;
+  --el-button-hover-text-color: rgba(240, 236, 228, 0.95);
+  --el-button-active-bg-color: #b89858;
+  --el-button-active-border-color: #b89858;
+  font-weight: 600;
+}
+
+/* Default button — dark ghost */
+:deep(.el-button--default) {
+  --el-button-bg-color: #1f1f25;
+  --el-button-border-color: rgba(120, 120, 130, 0.15);
+  --el-button-text-color: rgba(240, 236, 228, 0.55);
+  --el-button-hover-bg-color: #252530;
+  --el-button-hover-border-color: rgba(201, 169, 110, 0.2);
+  --el-button-hover-text-color: rgba(240, 236, 228, 0.75);
+}
+
+/* Success button — muted green */
+:deep(.el-button--success) {
+  --el-button-bg-color: rgba(34, 197, 94, 0.1);
+  --el-button-border-color: rgba(34, 197, 94, 0.2);
+  --el-button-text-color: rgba(74, 222, 128, 0.8);
+  --el-button-hover-bg-color: rgba(34, 197, 94, 0.15);
+  --el-button-hover-border-color: rgba(34, 197, 94, 0.3);
+  --el-button-hover-text-color: #4ade80;
+}
+
+/* Detail link — dim amber */
+.detail-link {
+  color: rgba(201, 169, 110, 0.7) !important;
+  font-weight: 500;
+}
+
+.detail-link:hover {
+  color: #c9a96e !important;
+}
+
+/* Dark pagination */
 .pagination-wrap {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
 }
 
-.countdown {
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
+/* Dark drawer */
+:deep(.el-drawer) {
+  background: #141418 !important;
+}
+
+:deep(.el-drawer__header) {
+  color: rgba(240, 236, 228, 0.8) !important;
+  border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+  margin-bottom: 0;
+  padding: 20px 24px;
+}
+
+:deep(.el-drawer__body) {
+  padding: 24px;
+}
+
+:deep(.el-drawer__title) {
+  font-family: 'DM Sans', sans-serif;
   font-weight: 600;
-  color: var(--ep-warning);
 }
 
-.countdown.expired {
-  color: var(--ep-danger);
+:deep(.el-drawer__close-btn) {
+  color: rgba(240, 236, 228, 0.35);
 }
 
-.font-mono {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+:deep(.el-drawer__close-btn:hover) {
+  color: rgba(240, 236, 228, 0.65);
 }
 
-/* Detail Drawer */
+/* Drawer footer buttons */
+:deep(.el-drawer__footer .el-button--default) {
+  --el-button-bg-color: #1f1f25;
+  --el-button-border-color: rgba(120, 120, 130, 0.15);
+  --el-button-text-color: rgba(240, 236, 228, 0.55);
+  --el-button-hover-bg-color: #252530;
+  --el-button-hover-border-color: rgba(201, 169, 110, 0.2);
+  --el-button-hover-text-color: rgba(240, 236, 228, 0.75);
+}
+
+:deep(.el-drawer__footer .el-button--success) {
+  --el-button-bg-color: rgba(34, 197, 94, 0.1);
+  --el-button-border-color: rgba(34, 197, 94, 0.2);
+  --el-button-text-color: rgba(74, 222, 128, 0.8);
+  --el-button-hover-bg-color: rgba(34, 197, 94, 0.15);
+  --el-button-hover-border-color: rgba(34, 197, 94, 0.3);
+  --el-button-hover-text-color: #4ade80;
+}
+
+/* Detail hero */
 .detail-hero {
   padding: 28px 24px;
-  border-radius: var(--ep-radius);
+  border-radius: 12px;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
@@ -377,19 +568,23 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 }
 
 .detail-hero.pending {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  background: rgba(212, 178, 58, 0.08);
+  border: 1px solid rgba(212, 178, 58, 0.15);
 }
 
 .detail-hero.success {
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  background: rgba(77, 184, 130, 0.08);
+  border: 1px solid rgba(77, 184, 130, 0.15);
 }
 
 .detail-hero.closed {
-  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  background: rgba(120, 120, 130, 0.06);
+  border: 1px solid rgba(120, 120, 130, 0.12);
 }
 
 .detail-hero.refunded {
-  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
 }
 
 .hero-status {
@@ -400,13 +595,13 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 
 .hero-countdown {
   font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-weight: 600;
-  color: var(--ep-warning);
+  color: rgba(201, 169, 110, 0.6);
 }
 
 .hero-countdown.expired {
-  color: var(--ep-danger);
+  color: #ef4444;
 }
 
 .hero-amount {
@@ -417,15 +612,15 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 .hero-currency {
   font-size: 20px;
   font-weight: 600;
-  color: var(--ep-text-secondary);
+  color: rgba(240, 236, 228, 0.3);
   margin-right: 4px;
 }
 
 .hero-number {
   font-size: 32px;
   font-weight: 800;
-  color: var(--ep-text-primary);
-  font-family: 'JetBrains Mono', monospace;
+  color: rgba(240, 236, 228, 0.8);
+  font-family: 'Space Mono', monospace;
   letter-spacing: -1px;
 }
 
@@ -440,14 +635,14 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 }
 
 .section-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--ep-text-secondary);
+  color: rgba(240, 236, 228, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin: 0 0 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--ep-border-light);
+  border-bottom: 1px solid rgba(201, 169, 110, 0.1);
 }
 
 .info-grid {
@@ -468,13 +663,161 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#333;padding:4
 }
 
 .info-label {
-  font-size: 12px;
-  color: var(--ep-text-placeholder);
+  font-size: 11px;
+  color: rgba(240, 236, 228, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .info-value {
   font-size: 14px;
-  color: var(--ep-text-primary);
+  color: rgba(240, 236, 228, 0.75);
   word-break: break-all;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.countdown {
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 600;
+  color: rgba(201, 169, 110, 0.6);
+}
+
+.countdown.expired {
+  color: #ef4444;
+}
+
+.font-mono {
+  font-family: 'Space Mono', 'SF Mono', 'Consolas', monospace;
+}
+
+/* Tag overrides — subdued, no white/purple */
+.table-card :deep(.el-tag--warning) {
+  --el-tag-bg-color: rgba(212, 178, 58, 0.1);
+  --el-tag-text-color: rgba(251, 191, 36, 0.8);
+  --el-tag-border-color: rgba(212, 178, 58, 0.18);
+}
+
+.table-card :deep(.el-tag--success) {
+  --el-tag-bg-color: rgba(77, 184, 130, 0.1);
+  --el-tag-text-color: rgba(74, 222, 128, 0.8);
+  --el-tag-border-color: rgba(77, 184, 130, 0.18);
+}
+
+.table-card :deep(.el-tag--danger) {
+  --el-tag-bg-color: rgba(239, 68, 68, 0.1);
+  --el-tag-text-color: rgba(248, 113, 113, 0.8);
+  --el-tag-border-color: rgba(239, 68, 68, 0.18);
+}
+
+.table-card :deep(.el-tag--info) {
+  --el-tag-bg-color: rgba(120, 120, 130, 0.12);
+  --el-tag-text-color: rgba(200, 200, 210, 0.6);
+  --el-tag-border-color: rgba(120, 120, 130, 0.2);
+}
+
+/* Global dark popups (select dropdown, date picker) */
+:global(.el-select__popper),
+:global(.el-picker-panel),
+:global(.el-select-dropdown) {
+  background: #1a1a1f !important;
+  border-color: rgba(120, 120, 130, 0.15) !important;
+}
+
+:global(.el-select-dropdown__item) {
+  color: rgba(240, 236, 228, 0.55) !important;
+}
+
+:global(.el-select-dropdown__item:hover),
+:global(.el-select-dropdown__item.hover) {
+  background: rgba(201, 169, 110, 0.08) !important;
+}
+
+:global(.el-select-dropdown__item.is-selected) {
+  color: #c9a96e !important;
+  font-weight: 600;
+}
+
+:global(.el-picker-panel__body) {
+  color: rgba(240, 236, 228, 0.7);
+}
+
+:global(.el-date-table th) {
+  color: rgba(240, 236, 228, 0.35) !important;
+}
+
+:global(.el-date-table td) {
+  color: rgba(240, 236, 228, 0.55) !important;
+}
+
+:global(.el-date-table td.today .el-date-table-cell__text) {
+  color: #c9a96e !important;
+}
+
+:global(.el-date-table td.current .el-date-table-cell__text) {
+  background: #3d3024 !important;
+  color: #c9a96e !important;
+}
+
+:global(.el-date-table td.in-range .el-date-table-cell) {
+  background: rgba(201, 169, 110, 0.1) !important;
+}
+
+:global(.el-date-picker__header-label) {
+  color: rgba(240, 236, 228, 0.6) !important;
+}
+
+:global(.el-date-picker__header-label:hover) {
+  color: #c9a96e !important;
+}
+
+:global(.el-picker-panel__icon-btn) {
+  color: rgba(240, 236, 228, 0.35) !important;
+}
+
+:global(.el-picker-panel__icon-btn:hover) {
+  color: #c9a96e !important;
+}
+
+:global(.el-month-table td .cell),
+:global(.el-year-table td .cell) {
+  color: rgba(240, 236, 228, 0.55) !important;
+}
+
+:global(.el-month-table td.current:not(.disabled) .cell),
+:global(.el-year-table td.current:not(.disabled) .cell) {
+  color: #c9a96e !important;
+}
+
+/* Loading dark */
+:deep(.el-loading-mask) {
+  background: rgba(12, 12, 14, 0.7);
+}
+
+/* Message box dark */
+:global(.el-message-box) {
+  --el-messagebox-title-color: rgba(240, 236, 228, 0.8);
+  --el-messagebox-content-color: rgba(240, 236, 228, 0.5);
+  background: #18181c !important;
+  border-color: rgba(120, 120, 130, 0.15) !important;
+  border-radius: 16px;
+}
+
+:global(.el-message-box__headerbtn .el-message-box__close) {
+  color: rgba(240, 236, 228, 0.35);
+}
+
+:global(.el-message-box__headerbtn .el-message-box__close:hover) {
+  color: rgba(240, 236, 228, 0.55);
+}
+
+/* El-Overlay (drawer/dialog backdrop) */
+:global(.el-overlay) {
+  background: rgba(0, 0, 0, 0.6) !important;
 }
 </style>

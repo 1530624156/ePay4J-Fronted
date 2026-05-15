@@ -6,9 +6,9 @@
       <div class="sidebar-logo">
         <div class="logo-mark" :class="{ small: isCollapse }">
           <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="8" fill="rgba(99,102,241,0.2)"/>
-            <path d="M10 16L14 12L18 16L14 20L10 16Z" fill="#818cf8"/>
-            <path d="M14 16L18 12L22 16L18 20L14 16Z" fill="#6366f1"/>
+            <rect width="32" height="32" rx="8" fill="rgba(212,151,59,0.15)"/>
+            <path d="M10 16L14 12L18 16L14 20L10 16Z" fill="#e8b35a"/>
+            <path d="M14 16L18 12L22 16L18 20L14 16Z" fill="#d4973b"/>
           </svg>
         </div>
         <transition name="fade">
@@ -136,6 +136,7 @@ function handleCommand(command) {
 .admin-layout {
   height: 100vh;
   overflow: hidden;
+  background: #0c0c0e;
 }
 
 .sidebar {
@@ -207,8 +208,8 @@ function handleCommand(command) {
 }
 
 .logo-badge.merchant {
-  color: #6ee7b7;
-  background: rgba(52, 211, 153, 0.15);
+  color: #e8b35a;
+  background: rgba(212, 151, 59, 0.15);
 }
 
 .sidebar-nav {
@@ -275,8 +276,8 @@ function handleCommand(command) {
 }
 
 .menu-item.active {
-  background: var(--ep-sidebar-active-bg);
-  color: #ffffff;
+  background: rgba(212, 151, 59, 0.12);
+  color: #edc068;
 }
 
 .menu-item-icon {
@@ -302,7 +303,7 @@ function handleCommand(command) {
   transform: translateY(-50%);
   width: 3px;
   height: 20px;
-  background: var(--ep-primary);
+  background: #d4973b;
   border-radius: 3px 0 0 3px;
 }
 
@@ -318,8 +319,8 @@ function handleCommand(command) {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: var(--ep-bg-card);
-  border-bottom: 1px solid var(--ep-border-light);
+  background: #131316;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
@@ -346,13 +347,13 @@ function handleCommand(command) {
 }
 
 .user-trigger:hover {
-  background: var(--ep-bg-hover);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .user-avatar {
-  background: linear-gradient(135deg, #34d399, #059669) !important;
-  color: white !important;
-  font-weight: 600 !important;
+  background: linear-gradient(135deg, #d4973b, #c4852a) !important;
+  color: #0a0a0c !important;
+  font-weight: 700 !important;
   font-size: 14px !important;
   flex-shrink: 0;
 }
@@ -366,16 +367,16 @@ function handleCommand(command) {
 .user-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ep-text-primary);
+  color: #f0ece4;
 }
 
 .user-role {
   font-size: 11px;
-  color: var(--ep-text-placeholder);
+  color: rgba(240, 236, 228, 0.5);
 }
 
 .user-arrow {
-  color: var(--ep-text-placeholder);
+  color: rgba(240, 236, 228, 0.4);
   font-size: 12px;
 }
 
@@ -383,7 +384,7 @@ function handleCommand(command) {
   flex: 1;
   overflow-y: auto;
   padding: 20px 24px;
-  background: var(--ep-bg-page);
+  background: #0c0c0e;
 }
 
 .fade-enter-active,
@@ -422,5 +423,91 @@ function handleCommand(command) {
 .text-fade-enter-from,
 .text-fade-leave-to {
   opacity: 0;
+}
+
+/* Dark theme overrides for header elements */
+.app-header :deep(.el-breadcrumb__inner) {
+  color: rgba(240, 236, 228, 0.6) !important;
+  font-weight: 400 !important;
+}
+
+.app-header :deep(.el-breadcrumb__inner a) {
+  color: rgba(240, 236, 228, 0.6) !important;
+}
+
+.app-header :deep(.el-breadcrumb__inner.is-link) {
+  color: rgba(240, 236, 228, 0.6) !important;
+}
+
+.app-header :deep(.el-breadcrumb__separator) {
+  color: rgba(240, 236, 228, 0.25) !important;
+}
+
+.app-header :deep(.el-dropdown-menu) {
+  background: #1a1a1f !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.app-header :deep(.el-dropdown-menu__item) {
+  color: #f0ece4 !important;
+}
+
+.app-header :deep(.el-dropdown-menu__item:hover) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #d4973b !important;
+}
+
+/* Dark scrollbar for main area */
+.app-main::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* PageContainer dark overrides */
+.app-main :deep(.page-title) {
+  color: #f0ece4 !important;
+}
+
+.app-main :deep(.page-desc) {
+  color: rgba(240, 236, 228, 0.5) !important;
+}
+
+/* Global dark overrides for select dropdowns */
+:global(.el-select__popper),
+:global(.el-select-dropdown) {
+  background: #1a1a1f !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+:global(.el-select-dropdown__item) {
+  color: rgba(240, 236, 228, 0.55) !important;
+}
+
+:global(.el-select-dropdown__item:hover),
+:global(.el-select-dropdown__item.hover) {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+:global(.el-select-dropdown__item.is-selected) {
+  color: #c9a96e !important;
+  font-weight: 600;
+}
+
+:global(.el-select-dropdown__empty) {
+  color: rgba(240, 236, 228, 0.3) !important;
+}
+
+:global(.el-popper) {
+  background: #1a1a1f !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+:global(.el-popper.is-light .el-popper__arrow::before) {
+  background: #1a1a1f !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
 </style>
